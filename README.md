@@ -44,30 +44,30 @@ Cette architecture permet une corrélation multi-sources (réseau + système + a
 # Environnement Technique
 ## Serveur SIEM
 
-Ubuntu Server
-Wazuh (Manager, Indexer, Dashboard)
-Port 443 activé pour accès sécurisé
-Accès HTTPS sécurisé
+- Ubuntu Server
+- Wazuh (Manager, Indexer, Dashboard)
+- Port 443 activé pour accès sécurisé
+- Accès HTTPS sécurisé
 
 ## Machine Attaquante
 
-Kali Linux
-Outils : Nmap, Hydra
-Tests réseau et applicatifs
+- Kali Linux
+- Outils : Nmap, Hydra
+- Tests réseau et applicatifs
 
 ## Machine Victime 1
 
-Windows 10 Pro
-Agent Wazuh installé
-Surveillance des logs Windows
+- Windows 10 Pro
+- Agent Wazuh installé
+- Surveillance des logs Windows
 
 ## Machine Victime 2
 
-Ubuntu
-Apache2 + MariaDB
-DVWA (Damn Vulnerable Web Application)
-Suricata IDS
-Agent Wazuh installé
+- Ubuntu
+- Apache2 + MariaDB
+- DVWA (Damn Vulnerable Web Application)
+- Suricata IDS
+- Agent Wazuh installé
 
 # Déploiement Technique
 ## 1. Installation du Serveur Wazuh
@@ -88,262 +88,210 @@ Vérification :
 ## 2. Déploiement des Agents
 ## Agent Windows
 
-Installation MSI
-Configuration du Manager
-Vérification remontée des logs
+- Installation MSI
+- Configuration du Manager
+- Vérification remontée des logs
 
 ## Agent Ubuntu
 
-Installation via dépôt officiel
-Configuration dans /var/ossec/etc/ossec.conf
-Intégration Suricata (lecture eve.json)
+- Installation via dépôt officiel
+- Configuration dans /var/ossec/etc/ossec.conf
+- Intégration Suricata (lecture eve.json)
 
 # 3. Intégration Suricata
 
-Installation via dépôt OISF
-Activation mode IDS
-Configuration interface réseau
-Vérification des logs JSON
-Intégration dans Wazuh via module localfile
+- Installation via dépôt OISF
+- Activation mode IDS
+- Configuration interface réseau
+- Vérification des logs JSON
+- Intégration dans Wazuh via module localfile
 
 Groupes de règles activés :
 
-suricata
-ids
-network
+- suricata
+- ids
+- network
 
 # Simulation d’Attaques
 ## 1. Reconnaissance Réseau (Nmap)
 
-Scan SYN furtif
-Scan de services
+- Scan SYN furtif
+- Scan de services
 
 Détection :
 
-Alertes ET SCAN Nmap
+- Alertes ET SCAN Nmap
+- Corrélation Suricata → Wazuh
 
-Corrélation Suricata → Wazuh
+# 2. Attaques Brute-Force
 
-2. Attaques Brute-Force
-SSH (Ubuntu)
-
-Hydra → tentative brute-force SSH
+## SSH (Ubuntu)
+- Hydra → tentative brute-force SSH
 
 Alertes détectées :
 
-SSH Authentication Failure
+- SSH Authentication Failure
+- ET SCAN/BRUTE FORCE SSH
+- Authentications failures count exceeded
 
-ET SCAN/BRUTE FORCE SSH
+## RDP (Windows)
 
-Authentications failures count exceeded
-
-RDP (Windows)
-
-Hydra → brute-force RDP
+- Hydra → brute-force RDP
 
 Alertes détectées :
 
-ET POLICY RDP brute force
+- ET POLICY RDP brute force
 
-3. Attaques Applicatives (DVWA)
-SQL Injection
-
-Détection :
-
-Signatures Suricata HTTP SQL Injection
-
-Règles Wazuh corrélées
-
-Cross-Site Scripting (XSS)
+# 3. Attaques Applicatives (DVWA)
+## SQL Injection
 
 Détection :
 
-Suricata HTTP XSS Attempt
+- Signatures Suricata HTTP SQL Injection
+- Règles Wazuh corrélées
 
-Alertes IDS consolidées
-
-Command Injection
-
-Détection :
-
-Anomalies HTTP
-
-Corrélation logs Apache + Suricata
-
-Brute-Force Login DVWA
+## Cross-Site Scripting (XSS)
 
 Détection :
 
-HTTP brute-force
+- Suricata HTTP XSS Attempt
+- Alertes IDS consolidées
 
-Corrélation multi-alertes
+## Command Injection
 
-Corrélation Wazuh – Suricata
-Suricata
+Détection :
 
-Détection au niveau réseau (paquets, signatures)
+- Anomalies HTTP
+- Corrélation logs Apache + Suricata
 
-Très rapide
+## Brute-Force Login DVWA
 
-Basée sur signatures
+Détection :
 
-Wazuh
+- HTTP brute-force
+- Corrélation multi-alertes
 
-Corrélation multi-source
+# Corrélation Wazuh – Suricata
+## Suricata
 
-Ajout de contexte système
+- Détection au niveau réseau (paquets, signatures)
+- Très rapide
+- Basée sur signatures
 
-Consolidation des phases d’attaque
+## Wazuh
 
-Vision complète : reconnaissance → exploitation → post-exploitation
+- Corrélation multi-source
+- Ajout de contexte système
+- Consolidation des phases d’attaque
+- Vision complète : reconnaissance → exploitation → post-exploitation
 
 La complémentarité IDS + SIEM permet :
 
-Réduction des angles morts
+- Réduction des angles morts
+- Détection contextualisée
+- Meilleure compréhension des incidents
 
-Détection contextualisée
+# Résultats & Analyse
+## Attaques correctement détectées
 
-Meilleure compréhension des incidents
+- Scans Nmap
+- Brute-force SSH/RDP
+- SQL Injection
+- XSS
+- Command Injection
+- Brute-force HTTP
 
-Résultats & Analyse
-Attaques correctement détectées
+## Faux positifs observés
 
-Scans Nmap
+- Certaines requêtes HTTP légitimes
+- Alertes Suricata trop sensibles lors de scans intensifs
 
-Brute-force SSH/RDP
+## Ajustements réalisés
 
-SQL Injection
+- Adaptation des règles locales Wazuh
+- Ajustement signatures Suricata
+- Filtrage IP internes
+- Augmentation seuils brute-force
 
-XSS
-
-Command Injection
-
-Brute-force HTTP
-
-Faux positifs observés
-
-Certaines requêtes HTTP légitimes
-
-Alertes Suricata trop sensibles lors de scans intensifs
-
-Ajustements réalisés
-
-Adaptation des règles locales Wazuh
-
-Ajustement signatures Suricata
-
-Filtrage IP internes
-
-Augmentation seuils brute-force
-
-Problèmes Techniques Rencontrés
-1. Saturation disque
+# Problèmes Techniques Rencontrés
+## 1. Saturation disque
 
 Cause :
 
-Volume élevé de logs indexés
+- Volume élevé de logs indexés
 
 Solution :
 
-Extension disque VirtualBox
+- Extension disque VirtualBox
+- Redimensionnement LVM
+- Vérification via df -h
 
-Redimensionnement LVM
-
-Vérification via df -h
-
-2. Incompatibilité API Wazuh
+## 2. Incompatibilité API Wazuh
 
 Erreur :
 
-API version mismatch
-
-403 / invalid credentials
+- API version mismatch
+- 403 / invalid credentials
 
 Solution :
 
-Vérification versions
+- Vérification versions
+- Mise à jour-  homogène via script officiel
+- Redémarrage service- s
 
-Mise à jour homogène via script officiel
-
-Redémarrage services
-
-3. Non remontée logs Suricata
+## 3. Non remontée logs Suricata
 
 Vérifications :
 
-Présence eve.json
+- Présence eve.json
+- Permissions
+- Configuration ossec.conf
+- Redémarrage agent
 
-Permissions
+# Évaluation de l’Efficacité
+## Points forts
 
-Configuration ossec.conf
-
-Redémarrage agent
-
-Évaluation de l’Efficacité
-Points forts
-
-Détection multi-couches (réseau + système + application)
-
-Alertes en temps réel
-
-Corrélation automatique
-
-Dashboard centralisé
-
+- Détection multi-couches (réseau + système + application)
+- Alertes en temps réel
+- Corrélation automatique
+- Dashboard centralisé
 Solution open source complète
 
-Limites
+## Limites
 
-Forte consommation disque indexer
+- Forte consommation disque indexer
+- Suricata très verbeux
+- Configuration fine nécessaire pour réduire faux positifs
 
-Suricata très verbeux
+# Perspectives d’Amélioration
 
-Configuration fine nécessaire pour réduire faux positifs
+- Cluster multi-nœuds Wazuh
+- Architecture Suricata distribuée
+- Pipeline SIEM–SOAR
+- Archivage et rotation avancée des logs
+- Monitoring 24/7 automatisé
+- Déploiement en environnement production
 
-Perspectives d’Amélioration
+# Compétences Démontrées
 
-Cluster multi-nœuds Wazuh
+- Conception d’architecture SIEM
+- Déploiement Wazuh complet (Manager, Indexer, Dashboard)
+- Intégration IDS réseau (Suricata)
+- Analyse et corrélation d’événements
+- Simulation d’attaques réelles
+- Troubleshooting avancé
+- Optimisation règles et réduction faux positifs
+- Vision SOC / Blue Team
 
-Architecture Suricata distribuée
-
-Pipeline SIEM–SOAR
-
-Archivage et rotation avancée des logs
-
-Monitoring 24/7 automatisé
-
-Déploiement en environnement production
-
-Compétences Démontrées
-
-Conception d’architecture SIEM
-
-Déploiement Wazuh complet (Manager, Indexer, Dashboard)
-
-Intégration IDS réseau (Suricata)
-
-Analyse et corrélation d’événements
-
-Simulation d’attaques réelles
-
-Troubleshooting avancé
-
-Optimisation règles et réduction faux positifs
-
-Vision SOC / Blue Team
-
-Positionnement Professionnel
+# Positionnement Professionnel
 
 Ce projet démontre des compétences opérationnelles en :
+- SOC Analyst
+- Blue Team
+- SIEM Engineer
+- Security Monitoring
+- Threat Detection & Correlation
+- Architecture Open Source Security
 
-SOC Analyst
-
-Blue Team
-
-SIEM Engineer
-
-Security Monitoring
-
-Threat Detection & Correlation
-
-Architecture Open Source Security
+## Auteur
+Karadag Nissa
