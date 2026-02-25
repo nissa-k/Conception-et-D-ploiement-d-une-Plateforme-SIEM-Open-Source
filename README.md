@@ -1,4 +1,4 @@
-# Conception-et-D-ploiement-d-une-Plateforme-SIEM-Open-Source
+# Conception-et-Déploiement-d-une-Plateforme-SIEM-Open-Source
 # Wazuh + Suricata – Détection d’Intrusions en Conditions Réelles
 # Résumé Exécutif
 
